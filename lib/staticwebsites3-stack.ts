@@ -5,20 +5,27 @@ import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { config } from 'process';
+
+
+export interface CustomStackProps extends cdk.StackProps {
+  bucketName: string;
+  requestLogging: boolean;
+}
 
 
 export class Staticwebsites3Stack extends cdk.Stack {
-  constructor(scope: Construct, id: string,config: { bucketName: string; requestLogging: boolean }, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: CustomStackProps) {
     super(scope, id, props);
+    
 
     const siteBucket = new s3.Bucket(this, 'SiteBucket', {
-      bucketName:config.bucketName,
+      bucketName:props.bucketName,
       removalPolicy: cdk.RemovalPolicy.DESTROY, // Use RETAIN for production
       autoDeleteObjects: true, // For testing; disable for production
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      serverAccessLogsBucket: config.requestLogging ? new s3.Bucket(this, 'LoggingBucket', {
-        bucketName: `${config.bucketName}-logs`,
+      serverAccessLogsBucket: props.requestLogging ? new s3.Bucket(this, 'LoggingBucket', {
+        bucketName: `${props.bucketName}-logs`,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
       }) : undefined,
     });
 
